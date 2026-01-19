@@ -1,9 +1,10 @@
 #imports
 import pandas as pd
 from pathlib import Path
+import gc
 
-from notebooks.utils.encoding_detector import detect_encoding
-from notebooks.utils.memory_optimizer import optimize_dtypes, clear_memory
+from notebooks.datas_manipulation.encoding_detector import detect_encoding
+from notebooks.datas_manipulation.memory_optimizer import optimize_dtypes
 
 
 def convert_csv_to_parquet(file_path: Path):
@@ -23,6 +24,6 @@ def convert_csv_to_parquet(file_path: Path):
         
         # Nettoyage immédiat
         del df
-        clear_memory()
+        gc.collect()
         return True
     return False
