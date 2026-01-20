@@ -6,14 +6,30 @@ REMARQUE: inplace constamment utilisé pour éco mémoire mais modifier si possi
 # imports
 import pandas as pd
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Literal
 
 
 
-def remove_duplicates(df:pd.DataFrame)->Tuple[pd.DataFrame, int]:
-    """Supprime les lignes doublons parfait."""
+def remove_duplicates(
+    df:pd.DataFrame,
+    subset:Optional[list[str]]=None,
+    keep:Literal['first', 'last', False]='first'
+)->Tuple[pd.DataFrame, int]:
+    """
+    Supprime les lignes doublons (par défaut: parfait).
+    
+    Args:
+        df: dataframe
+        subset: les colonnes pivots
+        keep: 'first', 'last' ou False pour savoir quoi garder
+    
+    Returns:
+        dataframe sans doublons
+        nombre de lignes supprimées
+    
+    """
     initial_shape = len(df)
-    df.drop_duplicates(inplace=True)
+    df.drop_duplicates(subset=subset, keep=keep, inplace=True)
     final_shape = len(df)
     dropped_rows = initial_shape - final_shape
     return df, dropped_rows
