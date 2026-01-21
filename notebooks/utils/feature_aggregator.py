@@ -7,7 +7,7 @@ from notebooks.utils.features_type_list import features_type
 def agg_features(
     df: pd.DataFrame,
     feature_to_groupby,
-    prefix: str,
+    prefix:Union[str,None]=None,
     drop_columns: Union[List[str], None] = None
 )-> pd.DataFrame:
     """
@@ -39,7 +39,10 @@ def agg_features(
     # agg suivant la colonne de pivot (feature_to_groupby)
     df_agg = df.groupby(feature_to_groupby).agg(agg_funcs)
     # Renommage des colonnes suivant refix
-    df_agg.columns = [f'{prefix}_{col[0]}_{col[1].upper()}' for col in df_agg.columns]
+    if not prefix:
+        df_agg.columns = [f'{col[0]}_{col[1].upper()}' for col in df_agg.columns]
+    else:
+        df_agg.columns = [f'{prefix}_{col[0]}_{col[1].upper()}' for col in df_agg.columns]
     
     # Agg catégorielle
     cat_aggs = []
