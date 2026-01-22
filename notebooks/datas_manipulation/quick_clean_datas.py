@@ -39,7 +39,7 @@ def remove_duplicates(
 def replace_XNA_XAP_by_NaN(df:pd.DataFrame)->pd.DataFrame:
     """Remplace les valeurs XNA et XAP par des NaN dans les colonnes spécifiées."""
     text_codes = ["XNA", "XAP", "Unknown"]
-    num_codes =[365243, 999999999]
+    num_codes =[365243, 999999999, 99999999.0]
     
     # Isole les colonnes par type
     cols_text = df.select_dtypes(include=['object', 'category']).columns.tolist()
