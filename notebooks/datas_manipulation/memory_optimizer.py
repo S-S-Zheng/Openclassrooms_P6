@@ -87,23 +87,14 @@ def float_to_int(df:pd.DataFrame, with_nan:bool = True)->pd.DataFrame:
         
         series_temp = df[col]
         
-        # check toutes les val sont entières
-        is_int = np.allclose(
-            series_temp.dropna(),
-            series_temp.dropna().astype(np.int64)
-        )
-        if not is_int:
+        if not (series_temp.dropna() % 1 == 0).all():
             continue
         
-        # Conversion en Int64 (ou int64) d'abord
-        series_temp_int = \
-            series_temp.astype('Int64') if with_nan else series_temp.astype('int64')
+        if with_nan:
+            series_temp = series_temp.astype("Int64")
+        else:
+            series_temp = series_temp.dropna().astype(np.int64)
         
-        # Downcast vers le plus petit possible
-        series_temp_down = pd.to_numeric(
-            series_temp_int,
-            downcast='integer'
-        )
+        df[col] = pd.to_numeric(series_temp,downcast="integer")
         
-        df[col] = series_temp_down
     return df

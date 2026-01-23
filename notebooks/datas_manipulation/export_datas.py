@@ -2,7 +2,7 @@
 import pandas as pd
 from pathlib import Path
 
-def export_datas(df:pd.DataFrame, folder_path:Path, step:str="", prefix:str="")-> None:
+def export_datas(df:pd.DataFrame, folder_path:Path, step:str="", prefix:str="")-> Path:
     """
     Eporte la dataframe vers le chemin spécifié
     
@@ -18,3 +18,5 @@ def export_datas(df:pd.DataFrame, folder_path:Path, step:str="", prefix:str="")-
     path.mkdir(parents=True,exist_ok=True)
     
     df.to_parquet(path/f"{prefix}{step}.parquet")
+    
+    return path
