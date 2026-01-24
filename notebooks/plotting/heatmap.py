@@ -2,27 +2,30 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 import seaborn as sns
-from typing import Optional, List, Literal
+from typing import List, Literal,cast
+from pathlib import Path
 
 from notebooks.utils.preproc_contingency import preprocess_contingency_data
-from notebooks.utils.config_figures import style_heatmap_axis, save_figure
-from notebooks.plotting.correlation import abs_correlation
+from notebooks.utils.config_figures import style_heatmap_axis, save_figure, setup_subplots
+from notebooks.correlation_tools.correlation import abs_correlation
 
 
 def plot_heatmaps(
-    data: pd.DataFrame, 
+    df: pd.DataFrame, 
     vmin: float, 
     vmax: float, 
     methods: List[Literal['pearson', 'kendall', 'spearman']] = ['pearson', 'spearman'],
-    title_save: str = "Heatmap", 
+    title_save: str = "Heatmap",
+    path_save: Path| None = None, 
     save: bool = False
 ) -> None:
     '''
     Génère la heatmap suivant Pearson ou un comparatif Pearson/Spearman
     
     Args:
-        data: Dataframe
+        df: Dataframe
         vmin: Valeur min
         vmax: Valeur max
         methods: méthodes de corrélation (défaut: pearson, spearman)
@@ -30,29 +33,22 @@ def plot_heatmaps(
         save: Booléen pour activer la sauvegarde
     '''
     
-    # 1. Préparation des données
-    clean_data = preprocess_contingency_data(data)
+    # Préparation des données
+    clean_df = preprocess_contingency_data(df)
 
-    # 2. Configuration de la figure
-    fig, axes = plt.subplots(
-        len(methods), 
-        1, 
-        figsize=(16, 8 * len(methods)), # Hauteur dynamique selon le nombre de plots
-        sharex=True, 
-        sharey=True,
-        clear=True
-    )
+    # Configuration de la figure
+    fig, axes = setup_subplots(len(methods),1, True, True, True)
     
     # S'assurer que 'axes' est toujours une liste (iterable) même s'il n'y a qu'un plot
     if len(methods) == 1:
         axes = [axes]
 
-    # 3. Boucle de création des graphiques
+    # Boucle de création des graphiques
     for i, method in enumerate(methods):
-        ax = axes[i]
+        ax = cast(Axes,axes[i])
         
         # Calcul
-        corr_matrix = abs_correlation(clean_data, method)
+        corr_matrix = abs_correlation(clean_df, method)
         
         # Génération des labels numériques pour l'axe X
         ind_name_to_num_list = np.arange(len(corr_matrix)).astype(str)
@@ -73,9 +69,9 @@ def plot_heatmaps(
         titre_graphique = f'Heatmap suivant la correlation de {method} (valeur absolue)'
         style_heatmap_axis(ax, titre_graphique)
 
-    # 4. Finalisation et Sauvegarde
+
     plt.tight_layout()
     
     if save:
-        save_figure(title_save)
+        save_figure(title_save, path_save)
     plt.show()

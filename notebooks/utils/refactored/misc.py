@@ -249,9 +249,10 @@ def zmad_outliers(datas:pd.DataFrame,zmad_coeff=3.5):
 
 def model_attr(models:dict):
     '''
-    Permet de vérifier si le(s) modèles possèdent les attributs demandées pour afficher les métriques.(Cas ici sur de la classification) 
+    Permet de vérifier si le(s) modèles possèdent les attributs demandées 
+    pour afficher les métriques.(Cas ici sur de la classification) 
     '''
-    for name, model in models_full.items():
+    for name, model in models.items():
         print(
             name,
             hasattr(model, "predict_proba"),

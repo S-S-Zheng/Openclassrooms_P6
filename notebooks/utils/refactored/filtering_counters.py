@@ -1,4 +1,6 @@
 import pandas as pd
+from typing import List, Tuple, Union
+
 
 # Fonction de comptage pour suivre l'effet des filtrages
 def cleaning_counter(**kwargs)->dict:
@@ -6,7 +8,10 @@ def cleaning_counter(**kwargs)->dict:
 
 
 # Liste les colonnes absentent de la dataframe before
-def removedAndAdded_col(df_before:pd.DataFrame,df_after:pd.DataFrame)->list:
+def removedAndAdded_col(
+    df_before:pd.DataFrame,
+    df_after:pd.DataFrame
+)->Tuple[List[str],List[str]]:
     
     removed_col_list = df_before.loc[:,~df_before.columns.isin(df_after)].columns.tolist()
     added_col_list = df_after.loc[:,~df_after.columns.isin(df_before)].columns.tolist()
@@ -15,7 +20,14 @@ def removedAndAdded_col(df_before:pd.DataFrame,df_after:pd.DataFrame)->list:
 
 
 # Compte le nombre de ligne et colonnes supprimé entre deux instants d'une dataframe --V2
-def cleaning_results(before:dict, after:dict, removed_col=[])->print:
+def cleaning_results(
+    before:dict,
+    after:dict,
+    removed_col:Union[List[str], None]=None
+)->None:
+    if not removed_col:
+        removed_col=[]
+    
     for df in before.keys():
         rows = before[df][0]-after[df][0]
         cols = len(removed_col)
