@@ -1,6 +1,9 @@
 #imports
 import pandas as pd
 
+# ===========================================================================
+
+
 def preprocess_contingency_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Nettoie le DataFrame en retirant les lignes ou colonnes 'Total' si présentes.

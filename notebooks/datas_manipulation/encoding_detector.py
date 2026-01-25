@@ -1,6 +1,10 @@
 import chardet
 from pathlib import Path
 
+
+# ===========================================================================
+
+
 def detect_encoding(file_path: Path, n_lines: int = 10000):
     """
     Analyse les premiers octets d'un fichier pour deviner son encodage.

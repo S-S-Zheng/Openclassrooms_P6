@@ -1,37 +1,68 @@
+"""
+issue des *modeling_cv
+"""
+
+
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Union, Tuple, Optional, Any
+from typing import Dict, Optional, Any
 
 # Scikit-Learn / Imblearn
 from sklearn.model_selection import cross_validate, cross_val_predict
 from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator
 
+from notebooks.models_tools.pipeline_builder import build_classification_pipeline
 
 
-######################################################################################
-# 3. MODEL RUNNER (EVALUATION)
-######################################################################################
+# ===========================================================================
 
-def evaluate_models_cv(
+def modeling_cv(
     X: pd.DataFrame,
     y: pd.Series,
     models: Dict[str, BaseEstimator],
     preprocessor: Optional[ColumnTransformer],
     sampler: Optional[Any] = None,
-    scoring: Dict[str, str] = {'AUC': 'roc_auc', 'ACC': 'accuracy'},
+    scoring: Dict[str, str] = {
+        'f1': 'f1',
+        'prec': 'precision',
+        'recall':'recall'
+    },
     cv: int = 5,
     verbose: bool = True
 ) -> pd.DataFrame:
     """
     Compare plusieurs modèles via validation croisée.
+    Va servir pour choisir le modèle parmis ceux tester.\n
+    se base sur cat_modeling_cv
     
     Args:
         X, y: Données d'entraînement.
         models: Dictionnaire {nom: instance_modele}.
         preprocessor: ColumnTransformer commun.
         sampler: Instance SMOTE ou None.
-        scoring: Dictionnaire des métriques Scikit-Learn.
+        scoring: Dictionnaire des métriques Scikit-Learn.\n
+            Remarque: A revoir pour la regression\n
+            REGRESSION:
+            'ExplainedVar':'explained_variance',
+            'MaxError':'neg_max_error',
+            'MAE':'neg_mean_absolute_error',
+            'MSE':'neg_mean_squared_error',
+            'RMSE':'neg_root_mean_squared_error',
+            'MSlogE':'neg_mean_squared_log_error',
+            'RMSlogE':'neg_root_mean_squared_log_error',
+            'MedianAE':'neg_median_absolute_error',
+            'R2':'r2',
+            'MPD':'neg_mean_poisson_deviance',
+            'MGD':'neg_mean_gamma_deviance',
+            'MAPE':'neg_mean_absolute_percentage_error',
+            'd2AE':'d2_absolute_error_score'
+            CLASSIFICATION:
+            'accu':'accuracy',
+            'f1':'f1',
+            'prec':'precision',
+            'recall':'recall',
+            'RC':'roc_auc'
         cv: Nombre de folds.
         
     Returns:
@@ -41,7 +72,7 @@ def evaluate_models_cv(
     
     for name, model_instance in models.items():
         if verbose:
-            print(f"🔄 Évaluation de {name}...")
+            print(f" Évaluation de {name}...")
             
         # Construction Pipeline Unique pour ce modèle
         pipeline = build_classification_pipeline(model_instance, preprocessor, sampler)
@@ -69,7 +100,14 @@ def evaluate_models_cv(
             
         results_list.append(row)
         
-    return pd.DataFrame(results_list).sort_values(by=f'Test {list(scoring.keys())[0]}', ascending=False)
+    return (
+        pd.DataFrame(results_list)
+        .sort_values(by=f'Test {list(scoring.keys())[0]}', ascending=False)
+    )
+
+
+# ===========================================================================
+
 
 def predict_models_cv(
     X: pd.DataFrame,
@@ -82,7 +120,10 @@ def predict_models_cv(
 ) -> pd.DataFrame:
     """
     Génère les prédictions (Proba et Classe) via Cross-Validation (Out-of-Fold predictions).
-    Utile pour construire une Stacking ou analyser les erreurs.
+    Utile pour construire une Stacking (utiliser les prédictions d'un modèle
+    comme features por un autre) ou analyser les erreurs (Comprendre les résultats
+    de Faux positi ou Négatif du modèle).
+    Se base sur cat_modeling_cv_predict.
     """
     results_list = []
     
@@ -91,20 +132,27 @@ def predict_models_cv(
         
         # Cross-Val Predict (Probabilités)
         # method='predict_proba' retourne une matrice (n_samples, n_classes)
-        y_probas = cross_val_predict(pipeline, X, y, cv=cv, method='predict_proba', n_jobs=-1)
+        y_probas = cross_val_predict(
+            pipeline, 
+            X, 
+            y, 
+            cv=cv, 
+            method='predict_proba', 
+            # n_jobs=-1
+        )
         
-        # On suppose une classification binaire -> on prend la colonne 1
+        # Proba de la classe 1
         positive_probs = y_probas[:, 1]
-        predictions = (positive_probs >= threshold).astype(int)
+        predictions = (positive_probs >= threshold).astype("int8")
         
         # On stocke le résultat global (pas par fold, mais pour tout le dataset)
         # Pour une analyse par ligne, on pourrait retourner un DataFrame avec Index
         res = pd.DataFrame({
-            'Model': name,
-            'Index': X.index,
+            'Modele': name,
+            'Indice': X.index,
             'True_Label': y,
-            'Prob_1': positive_probs,
-            'Pred_Label': predictions
+            'y_proba1': positive_probs,
+            'y_pred1': predictions
         })
         results_list.append(res)
         

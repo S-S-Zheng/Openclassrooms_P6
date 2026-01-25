@@ -2,6 +2,10 @@ import pandas as pd
 from typing import List, Tuple
 import numpy as np
 
+
+# ===========================================================================
+
+
 # Fonction pour lister les features numériques et les catégorielles
 def features_type(df:pd.DataFrame)-> Tuple[List[str],List[str]]:
     '''

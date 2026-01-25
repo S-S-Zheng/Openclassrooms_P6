@@ -1,41 +1,54 @@
-import pandas as pd
-import numpy as np
-from typing import List, Dict, Union, Tuple, Optional, Any, Literal
+"""
+issu de Xy_tf + preproc
+"""
+# import pandas as pd
+# import numpy as np
+from typing import List, Literal, Any
 
 # Scikit-Learn / Imblearn
-from sklearn.model_selection import cross_validate, cross_val_predict, GridSearchCV
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, FunctionTransformer, PowerTransformer
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.base import BaseEstimator
-from imblearn.pipeline import Pipeline  # Compatible avec SMOTE
+from sklearn.preprocessing import OneHotEncoder,FunctionTransformer, PowerTransformer
+from sklearn.pipeline import Pipeline 
 
-######################################################################################
-# 1. PREPROCESSING FACTORY
-######################################################################################
 
-def build_numerical_pipeline(
+# ===========================================================================
+
+def preproc_numerical_features(
     scale_method: Any = None,
     log_method: Literal['box-cox', 'yeo-johnson', None] = None
 ) -> Pipeline:
     """
     Construit le pipeline de transformation pour les variables numériques.
+    reamrque; issu de de la fonction Xy_tf, ne se concentre que sur
+    la Classification ==> y rarement tf donc pas mentionner!
     
     Args:
-        scale_method: Instance de scaler (ex: StandardScaler(), RobustScaler()).
+        scale_method: Instance de scaler.\n
+            EXMPLES:
+            'StandardScaler()': Classique, normalise en supprimant la moyenne 
+            'MinMaxScaler()' : borne juste sur [0,1]. Tres sensibles aux outliers
+            'RobustScaler()' : utilise la mediane et l iqr donc 
+                insensibles aux outliers mais l echelle est conservée 
+                (mauvais pour SVR)
+            'QuantileTransformer()' : Transforme les données pour suivre 
+                une distribution donnée ce qui supprime les outliers 
+                et ramene l echelle MAIS transformation non-linéaire 
+                + transformation couteuse!
+    ]
         log_method: Méthode de transformation ('box-cox', 'yeo-johnson') ou None.
         
     Returns:
-        Pipeline Scikit-Learn pour les numériques.
+        Pipeline
     """
     steps = []
     
-    # 1. Transformation Log / Power
+    # Transformation Log / Power
     if log_method:
-        # Note: Yeo-Johnson supporte les négatifs, Box-Cox requiert du positif strict
+        # Note: Yeo-Johnson supporte les négatifs, 
+        # Box-Cox requiert du positif strict
         steps.append(('power_tf', PowerTransformer(method=log_method)))
         
-    # 2. Scaling
+    # Scaling
     if scale_method:
         steps.append(('scaler', scale_method))
         
@@ -46,6 +59,7 @@ def build_numerical_pipeline(
     return Pipeline(steps)
 
 
+# ===========================================================================
 
 
 def build_preprocessor(
@@ -60,8 +74,10 @@ def build_preprocessor(
     Args:
         numeric_features: Liste des noms de colonnes numériques.
         categorical_features: Liste des noms de colonnes catégorielles.
-        num_pipeline: Pipeline de traitement numérique (issue de build_numerical_pipeline).
-        sparse_output: Si True, retourne une matrice sparse (plus léger en RAM pour OHE).
+        num_pipeline: Pipeline de traitement numérique 
+            (ISSUE de build_numerical_pipeline).
+        sparse_output: Si True, retourne une matrice sparse 
+            (plus léger en RAM pour OHE).
         
     Returns:
         ColumnTransformer prêt à l'emploi.
@@ -74,7 +90,8 @@ def build_preprocessor(
         
     # Branche Catégorielle (OHE par défaut pour compatibilité générique)
     if categorical_features:
-        # Pour les arbres (RF, XGB), dense est souvent mieux. Pour Linear, sparse est mieux.
+        # Pour les arbres (RF, XGB), dense est souvent mieux. 
+        # Pour Linear, sparse est mieux.
         ohe = OneHotEncoder(
             handle_unknown='ignore', 
             sparse_output=sparse_output

@@ -3,6 +3,9 @@ import pandas as pd
 from typing import Literal, cast,Any
 
 
+# ===========================================================================
+
+
 def abs_correlation(
     df: pd.DataFrame,
     method: Literal['pearson', 'kendall', 'spearman']
@@ -12,6 +15,9 @@ def abs_correlation(
     Responsabilité : Logique métier / Calcul.
     """
     return abs(df.corr(numeric_only=True, method=method))
+
+
+# ===========================================================================
 
 
 def get_correlated_pairs(

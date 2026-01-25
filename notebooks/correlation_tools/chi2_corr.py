@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import chi2_contingency, chi2
+from scipy.stats import chi2_contingency
 from itertools import combinations
-from typing import Tuple, List, Union
+from typing import List, Union
+
+
+# ===========================================================================
 
 
 def cramersV(contingency_table:pd.DataFrame, chi2_stat:float)->Union[int,float]:
@@ -12,6 +15,9 @@ def cramersV(contingency_table:pd.DataFrame, chi2_stat:float)->Union[int,float]:
     if n == 0 or k <= 1:
         return 0
     return np.sqrt(chi2_stat / (n * (k - 1)))
+
+
+# ===========================================================================
 
 
 def get_chi2_report(df: pd.DataFrame, cat_list: List[str], alpha:float=0.05)->pd.DataFrame:

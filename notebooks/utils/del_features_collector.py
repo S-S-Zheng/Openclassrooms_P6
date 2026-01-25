@@ -2,6 +2,9 @@ import pandas as pd
 from typing import Dict, List, Tuple
 
 
+# ===========================================================================
+
+
 def get_column_diff(
     df_before: pd.DataFrame,
     df_after: pd.DataFrame
@@ -20,6 +23,9 @@ def get_column_diff(
     added = list(set_after - set_before)
     
     return sorted(removed), sorted(added)
+
+
+# ===========================================================================
 
 
 def log_cleaning_step(

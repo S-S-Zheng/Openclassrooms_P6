@@ -1,6 +1,10 @@
 import pandas as pd
 from typing import List, Tuple
 
+
+# ===========================================================================
+
+
 def get_data_completion_report(
     df: pd.DataFrame, 
     group_col: str, 

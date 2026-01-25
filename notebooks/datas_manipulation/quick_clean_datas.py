@@ -9,6 +9,8 @@ import numpy as np
 from typing import List, Tuple, Optional, Literal
 
 
+# ===========================================================================
+
 
 def remove_duplicates(
     df:pd.DataFrame,
@@ -62,6 +64,9 @@ def replace_XNA_XAP_by_NaN(df:pd.DataFrame)->pd.DataFrame:
     return df
 
 
+# ===========================================================================
+
+
 def drop_empty_columns(df:pd.DataFrame, threshold:float=0.9)->Tuple[pd.DataFrame, List[str]]:
     """
     threshold = seuil de suppression (défaut = 90% donc si plus de 90% de Nan ==> suppr).
@@ -76,6 +81,9 @@ def drop_empty_columns(df:pd.DataFrame, threshold:float=0.9)->Tuple[pd.DataFrame
     if cols_to_drop:
         df.drop(columns=cols_to_drop, inplace=True)
     return df, cols_to_drop
+
+
+# ===========================================================================
 
 
 def drop_empty_rows(df:pd.DataFrame, threshold:float=0.9)->Tuple[pd.DataFrame, List[str]]:
@@ -95,6 +103,9 @@ def drop_empty_rows(df:pd.DataFrame, threshold:float=0.9)->Tuple[pd.DataFrame, L
     return df, rows_to_drop
 
 
+# ===========================================================================
+
+
 def drop_col_with_unique_value(df:pd.DataFrame)->Tuple[pd.DataFrame, List[str]]:
     """
     Supprime les colonnes a variance nulle (valeur unique)
@@ -102,6 +113,9 @@ def drop_col_with_unique_value(df:pd.DataFrame)->Tuple[pd.DataFrame, List[str]]:
     null_var=[col for col in df.columns if df[col].nunique()<=1]
     df.drop(columns=null_var, inplace=True)
     return df, null_var
+
+
+# ===========================================================================
 
 
 def clean_infinites(df: pd.DataFrame)->pd.DataFrame:

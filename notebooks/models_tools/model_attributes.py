@@ -1,6 +1,9 @@
 import pandas as pd
 from typing import Dict, Any, Union, List
 
+from sklearn.calibration import CalibratedClassifierCV
+
+# ===========================================================================
 
 def model_attr(
     models: Dict[str, Any],
@@ -14,7 +17,7 @@ def model_attr(
     Args:
         models: Dictionnaire {nom: instance_du_modele}.
         *extra_attrs: Noms d'attributs supplémentaires à vérifier 
-        (ex: 'coef_', 'feature_importances_').
+            (ex: 'coef_', 'feature_importances_').
         
     Returns:
         Un DataFrame récapitulatif (booléens).
@@ -39,3 +42,19 @@ def model_attr(
         capabilities.append(status)
         
     return pd.DataFrame(capabilities).set_index("model_name")
+
+
+# ===========================================================================
+
+def predict_proba_wrapper(model: Any, cv: int = 3) -> Any:
+    """
+    Vérifie si le modèle a 'predict_proba'. Sinon, l'enveloppe dans un CalibratedClassifierCV.
+    Utile pour SVM (SVC) ou RidgeClassifier.
+    """
+    if not hasattr(model, "predict_proba"):
+        print(
+            f"{model.__class__.__name__} n'a pas predict_proba."\
+                "Ajout de CalibratedClassifierCV."
+            )
+        return CalibratedClassifierCV(estimator=model, method="sigmoid", cv=cv)
+    return model

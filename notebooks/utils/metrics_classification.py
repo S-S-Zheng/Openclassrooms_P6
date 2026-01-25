@@ -1,5 +1,7 @@
+import numpy as np
 import pandas as pd
 from typing import List, Tuple, Union
+
 
 def top_score(
     df: pd.DataFrame,
@@ -77,4 +79,20 @@ def top_score(
     return full_report, model_ranking
 
 
+# =============================================================
+
+
+def fbeta(
+    precision:np.ndarray,
+    recall:np.ndarray,
+    beta:float=1.0
+):
+    """
+    Calcule le score F-beta
+    """
+    
+    fbeta = (1 + beta**2) * (
+        (precision * recall) / (beta**2 * precision + recall + 1e-12)
+    )
+    return fbeta
 

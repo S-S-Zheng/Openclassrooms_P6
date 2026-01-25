@@ -8,6 +8,9 @@ import numpy as np
 from typing import Tuple
 
 
+# ===========================================================================
+
+
 def optimize_dtypes(df: pd.DataFrame, categorization: bool = False) -> pd.DataFrame:
     """
     Modifie les types pour économiser la RAM.
@@ -67,11 +70,17 @@ def optimize_dtypes(df: pd.DataFrame, categorization: bool = False) -> pd.DataFr
     # return df
 
 
+# ===========================================================================
+
+
 def log_metrics(df:pd.DataFrame, stage:str="")->Tuple[str, float, float]:
     "Calcul et retourne les métriques mémoires"
     mem = df.memory_usage().sum() / 1024**2 # RAM(MB)
     nulls = df.isnull().sum().sum() # Total Nan
     return stage, mem, nulls
+
+
+# ===========================================================================
 
 
 def float_to_int(df:pd.DataFrame, with_nan:bool = True)->pd.DataFrame:

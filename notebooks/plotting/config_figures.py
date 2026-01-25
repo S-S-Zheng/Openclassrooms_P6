@@ -7,6 +7,10 @@ from matplotlib.figure import Figure
 from typing import Tuple, Literal
 from pathlib import Path
 
+
+# ===========================================================================
+
+
 def setup_subplots(
     num_plots: int,
     cols: int = 2,
@@ -50,6 +54,9 @@ def setup_subplots(
     return fig, axes_flat
 
 
+# ===========================================================================
+
+
 def style_heatmap_axis(ax: Axes, title: str) -> None:
     """
     Applique le style spécifique aux axes du graphique.
@@ -69,6 +76,9 @@ def style_heatmap_axis(ax: Axes, title: str) -> None:
     
     ax.tick_params(axis='x', labelbottom=True, **common_params)
     ax.tick_params(axis='y', **common_params)
+
+
+# ===========================================================================
 
 
 def save_figure(title: str,path:Path|None=None) -> None:

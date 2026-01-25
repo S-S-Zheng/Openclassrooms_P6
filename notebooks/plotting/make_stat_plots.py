@@ -7,7 +7,7 @@ from matplotlib.figure import Figure
 from typing import List, Optional, Literal
 from pathlib import Path
 
-from notebooks.utils.config_figures import setup_subplots, save_figure
+from notebooks.plotting.config_figures import setup_subplots, save_figure
 from notebooks.utils.features_type_list import features_type
 
 
@@ -42,6 +42,8 @@ def _plot_hist(df: pd.DataFrame, col: str, ax: Axes):
         ax=ax
     )
     ax.set_title(f"Distribution de {col}")
+
+
 # ============================================================================
 
 
@@ -92,6 +94,9 @@ def plot_scat_box_hist(
     if save_path:
         save_figure(title_save, save_path)
     return fig
+
+
+# ===========================================================================
 
 
 def plot_pairplot(

@@ -7,6 +7,9 @@ from notebooks.datas_manipulation.encoding_detector import detect_encoding
 from notebooks.datas_manipulation.memory_optimizer import optimize_dtypes
 
 
+# ===========================================================================
+
+
 def convert_csv_to_parquet(file_path: Path):
     """Convertit un fichier unique en optimisant sa taille."""
     parquet_path = file_path.with_suffix('.parquet')

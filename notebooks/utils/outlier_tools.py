@@ -5,6 +5,9 @@ from typing import Tuple
 from features_type_list import features_type
 
 
+# ===========================================================================
+
+
 def iqr_outliers(
     df: pd.DataFrame, 
     iqr_coeff: float = 1.5
@@ -55,6 +58,9 @@ def iqr_outliers(
     df_outliers = df[outlier_rows_indices]
 
     return summary, df_outliers
+
+
+# ===========================================================================
 
 
 def zmad_outliers(

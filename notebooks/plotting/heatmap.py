@@ -8,8 +8,11 @@ from typing import List, Literal,cast
 from pathlib import Path
 
 from notebooks.utils.preproc_contingency import preprocess_contingency_data
-from notebooks.utils.config_figures import style_heatmap_axis, save_figure, setup_subplots
+from notebooks.plotting.config_figures import style_heatmap_axis, save_figure, setup_subplots
 from notebooks.correlation_tools.correlation import abs_correlation
+
+
+# ===========================================================================
 
 
 def plot_heatmaps(

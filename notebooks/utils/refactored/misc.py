@@ -258,3 +258,110 @@ def model_attr(models:dict):
             hasattr(model, "predict_proba"),
             hasattr(model, "decision_function")
         )
+
+#######################################################################
+########################################################################
+########################################################################
+
+
+def fbeta(precision, recall, beta=1):
+    fbeta = (1 + beta**2) * (
+        (precision * recall) / (beta**2 * precision + recall + 1e-12)
+    )
+    return fbeta
+
+
+#########################################################################
+#########################################################################
+#########################################################################
+
+
+def threshold_tuning(
+    y_true: pd.Series,
+    y_proba: pd.DataFrame,
+    names: list,
+    method="f",
+    target_metric=None,
+    beta=1,
+):
+    """
+    ENTREES:
+
+    y_true,
+    y_proba,
+    names:list, noms des modèles et leur source
+    method='f', f pour f-score, 'precision' ou 'recall'
+    target_metric = None, valeur cible si la method n'est pas un fscore
+    beta = 1, beta pour orienter le fscore, 1 pour f1,
+    0.5 pour maxer la précision et 2 pour maxer le recall
+
+    SORTIES:
+
+    dictionnaire : {
+                'Methode': f'{method}',
+                'f-score':max(f),
+                'Précision' : sup_target_precision[idx],
+                'Rappel': sup_target_recall[idx],
+                'Seuil_optimal' : sup_target_threshold[idx],
+            }
+    """
+    import numpy as np
+    from misc import fbeta
+    from sklearn.metrics import precision_recall_curve
+
+    precision, recall, thresholds = precision_recall_curve(y_true, y_proba)
+    precision, recall = precision[:-1], recall[:-1]
+
+    if method == "f":
+        f = fbeta(precision, recall, beta=beta)
+        idx = np.argmax(f)
+
+        return {
+            "Methode": f"{method}{beta}",
+            "f-score": max(f),
+            "Précision": precision[idx],
+            "Rappel": recall[idx],
+            "Seuil_optimal": thresholds[idx],
+        }
+
+    elif method == "recall":
+        mask = recall >= target_metric
+
+        sup_target_threshold = thresholds[mask]
+        sup_target_recall = recall[mask]
+        sup_target_precision = precision[mask]
+        # meilleur f2 parmi les cas respectant la target
+        f = fbeta(sup_target_precision, sup_target_recall, beta=2)
+        idx = np.argmax(f)
+
+        return {
+            "Methode": f"{method}",
+            "f-score": max(f),
+            "Précision": sup_target_precision[idx],
+            "Rappel": sup_target_recall[idx],
+            "Seuil_optimal": sup_target_threshold[idx],
+        }
+    elif method == "precision":
+        mask = precision >= target_metric
+
+        sup_target_threshold = thresholds[mask]
+        sup_target_recall = recall[mask]
+        sup_target_precision = precision[mask]
+        # meilleur f2 parmi les cas respectant la target
+        f = fbeta(sup_target_precision, sup_target_recall, beta=0.5)
+        idx = np.argmax(f)
+
+        return {
+            "Methode": f"{method}",
+            "f-score": max(f),
+            "Précision": sup_target_precision[idx],
+            "Rappel": sup_target_recall[idx],
+            "Seuil_optimal": sup_target_threshold[idx],
+        }
+    else:
+        raise ValueError("Méthode inconnue, choisir entre f,recall et precision")
+
+
+############################################################################
+############################################################################
+############################################################################

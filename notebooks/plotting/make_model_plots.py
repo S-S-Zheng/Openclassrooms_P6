@@ -4,14 +4,17 @@ import matplotlib.pyplot as plt
 # from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 # import numpy as np
-from typing import List, Literal, Any
+from typing import List, Literal, Any, Optional
 from pathlib import Path
+from catboost import CatBoostClassifier, Pool
 
-from notebooks.utils.config_figures import setup_subplots, save_figure
+from notebooks.plotting.config_figures import setup_subplots, save_figure
 
 
 from sklearn.inspection import permutation_importance
 
+
+# ===========================================================================
 
 
 def plot_hyperparam_effect(
@@ -75,6 +78,7 @@ def plot_hyperparam_effect(
     return fig
 
 
+# ===========================================================================
 
 
 def get_feature_importance(
@@ -164,6 +168,7 @@ def get_feature_importance(
     return importances.sort_values(ascending=False)
 
 
+# ===========================================================================
 
 
 def plot_feature_importance(
@@ -195,3 +200,40 @@ def plot_feature_importance(
         save_figure(title_save,save_path)
         
     return fig
+
+
+# ===========================================================================
+
+# A revoir
+def catboost_graphs(
+    X:pd.DataFrame,
+    best_model:CatBoostClassifier,
+    pool:Optional[Pool]=None
+):
+    """ """
+
+    # ========================================================================
+    # Feature importance (split-base)
+    feature_importance = best_model.get_feature_importance(
+        type="PredictionValuesChange" # type: ignore
+    )
+
+    df_feat_importance = pd.DataFrame(
+        {"Features": X.columns, "Feature importance": feature_importance}
+    ).sort_values("Feature importance", ascending=False)
+
+    # =======================================================================
+    # Si présence de pool alors on ajoute la permutation importance
+
+    if pool:
+
+        permutation_importance = best_model.get_feature_importance(
+            type="PredictionValuesChange", # type: ignore
+            data=pool
+        )
+
+        df_perm_importance = pd.DataFrame(
+            {"Features": X.columns, "Permutation importance": permutation_importance}
+        ).sort_values("Permutation importance", ascending=False)
+
+    return df_feat_importance, df_perm_importance

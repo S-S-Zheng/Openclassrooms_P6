@@ -9,6 +9,9 @@ from pathlib import Path
 import gc
 
 
+# ===========================================================================
+
+
 def assemble_data(path:Path, file_names:List[str])-> pd.DataFrame:
     """
     Importe une liste des dataframes + assign crée une colonne subset pour les différencier.
@@ -18,6 +21,9 @@ def assemble_data(path:Path, file_names:List[str])-> pd.DataFrame:
         pd.read_parquet(path/file_name).assign(subset=file_name) for file_name in file_names
     ]
     return pd.concat(dataframes,axis=0, ignore_index=True)
+
+
+# ===========================================================================
 
 
 def merging_data(

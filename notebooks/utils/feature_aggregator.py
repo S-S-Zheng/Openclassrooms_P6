@@ -4,6 +4,10 @@ from typing import List, Union, Literal
 
 from notebooks.utils.features_type_list import features_type
 
+
+# ===========================================================================
+
+
 def agg_features(
     df: pd.DataFrame,
     feature_to_groupby,
@@ -60,6 +64,9 @@ def agg_features(
         gc.collect()
         
     return df_agg
+
+
+# ===========================================================================
 
 
 def agg_columns(

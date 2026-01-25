@@ -4,6 +4,9 @@ from scipy.stats import f_oneway
 from typing import List
 
 
+# ===========================================================================
+
+
 def get_eta2(df: pd.DataFrame, cat_col: str, target_col: str) -> float:
     """
     Calcule l'Eta-carré (taille de l'effet) pour une ANOVA.
@@ -26,6 +29,9 @@ def get_eta2(df: pd.DataFrame, cat_col: str, target_col: str) -> float:
         if sct != 0
         else 0.0
     )
+
+
+# ===========================================================================
 
 
 def get_anova_report(
