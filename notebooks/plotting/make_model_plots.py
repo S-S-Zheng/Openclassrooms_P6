@@ -1,10 +1,11 @@
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 # from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 # import numpy as np
-from typing import List, Literal, Any, Optional
+from typing import List, Literal, Any, Optional,Tuple
 from pathlib import Path
 from catboost import CatBoostClassifier, Pool
 
@@ -12,7 +13,7 @@ from notebooks.plotting.config_figures import setup_subplots, save_figure
 
 
 from sklearn.inspection import permutation_importance
-
+from sklearn.metrics import precision_recall_curve,auc
 
 # ===========================================================================
 
@@ -237,3 +238,27 @@ def catboost_graphs(
         ).sort_values("Permutation importance", ascending=False)
 
     return df_feat_importance, df_perm_importance
+
+
+
+# ===========================================================================
+
+def pr_curve(
+    y_true:np.ndarray|pd.Series, 
+    y_proba:np.ndarray|pd.Series, 
+)->Tuple[np.ndarray,np.ndarray,np.ndarray,float]:
+    """
+    Calcul precision, recall et threshold ainsi que l'auc.
+    
+    Args:
+        y_true: Étiquettes réelles.
+        y_proba: Probabilités de la classe positive (1D array).
+    
+    """
+    # thresholds renvoyé par sklearn a une longueur n_thresholds
+    # (un de moins que prec/rec)
+    prec, rec, thresh = precision_recall_curve(y_true, y_proba)
+    
+    # On aligne les vecteurs pour prec et rec 
+    # (sklearn ajoute 1 et 0 à la fin de prec/rec)
+    return prec[:-1], rec[:-1], thresh, float(auc(rec, prec))

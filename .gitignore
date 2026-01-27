@@ -47,3 +47,5 @@ htmlcov
 
 # Datas
 raw_datas/
+notebooks/**/deprecated/
+notebooks/**/refactored/

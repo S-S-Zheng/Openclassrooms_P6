@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Dict, Any, Union, List
+from typing import Dict, Any, Union, List, Literal
 
 from sklearn.calibration import CalibratedClassifierCV
 
@@ -46,7 +46,11 @@ def model_attr(
 
 # ===========================================================================
 
-def predict_proba_wrapper(model: Any, cv: int = 3) -> Any:
+def predict_proba_wrapper(
+    model: Any, 
+    method:Literal['sigmoid','isotonic']='sigmoid', 
+    cv: int = 3
+) -> Any:
     """
     Vérifie si le modèle a 'predict_proba'. Sinon, l'enveloppe dans un CalibratedClassifierCV.
     Utile pour SVM (SVC) ou RidgeClassifier.
@@ -56,5 +60,5 @@ def predict_proba_wrapper(model: Any, cv: int = 3) -> Any:
             f"{model.__class__.__name__} n'a pas predict_proba."\
                 "Ajout de CalibratedClassifierCV."
             )
-        return CalibratedClassifierCV(estimator=model, method="sigmoid", cv=cv)
+        return CalibratedClassifierCV(estimator=model, method=method, cv=cv)
     return model

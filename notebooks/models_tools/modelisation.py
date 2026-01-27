@@ -1,29 +1,14 @@
-"""
-issue des *modeling_cv
-"""
-
-
 import pandas as pd
 import numpy as np
-from typing import Dict, Optional, Any
-
-# Scikit-Learn / Imblearn
+from typing import Dict, Union
 from sklearn.model_selection import cross_validate, cross_val_predict
-from sklearn.compose import ColumnTransformer
-from sklearn.base import BaseEstimator
-
-from notebooks.models_tools.pipeline_builder import build_classification_pipeline
-
-
-# ===========================================================================
+from sklearn.pipeline import Pipeline
 
 def modeling_cv(
     X: pd.DataFrame,
     y: pd.Series,
-    models: Dict[str, BaseEstimator],
-    preprocessor: Optional[ColumnTransformer],
-    sampler: Optional[Any] = None,
-    scoring: Dict[str, str] = {
+    pipelines: Dict[str, Pipeline],
+    scoring: Dict[str, str]={
         'f1': 'f1',
         'prec': 'precision',
         'recall':'recall'
@@ -32,15 +17,12 @@ def modeling_cv(
     verbose: bool = True
 ) -> pd.DataFrame:
     """
-    Compare plusieurs modèles via validation croisée.
-    Va servir pour choisir le modèle parmis ceux tester.\n
-    se base sur cat_modeling_cv
+    Exécute la validation croisée sur un dictionnaire de Pipelines déjà configurées.
+    On utilise cross validate() ==> Comparaison de modèles.
     
     Args:
         X, y: Données d'entraînement.
-        models: Dictionnaire {nom: instance_modele}.
-        preprocessor: ColumnTransformer commun.
-        sampler: Instance SMOTE ou None.
+        pipelines: Dictionnaire {nom: pipeline_complète}.
         scoring: Dictionnaire des métriques Scikit-Learn.\n
             Remarque: A revoir pour la regression\n
             REGRESSION:
@@ -66,43 +48,51 @@ def modeling_cv(
         cv: Nombre de folds.
         
     Returns:
-        DataFrame résumant les scores (Train/Test) pour chaque métrique.
+        DataFrame comparatif des performances.
     """
     results_list = []
     
-    for name, model_instance in models.items():
+    for name, pipe in pipelines.items():
         if verbose:
             print(f" Évaluation de {name}...")
             
-        # Construction Pipeline Unique pour ce modèle
-        pipeline = build_classification_pipeline(model_instance, preprocessor, sampler)
-        
         # Cross-Validation
+        # Note: on utilise n_jobs=-1 pour paralléliser, 
+        # sauf si le modèle le fait déjà (ex: XGBoost)
+        # Si conflit de threads, mettre n_jobs=1
         cv_results = cross_validate(
-            pipeline, X, y, cv=cv, scoring=scoring, 
-            return_train_score=True, n_jobs=-1
+            pipe, 
+            X, 
+            y,
+            cv=cv, 
+            scoring=scoring, 
+            return_train_score=True,
+            # n_jobs=-1
         )
         
         # Agrégation des résultats
         row = {'Model': name}
-        for metric_alias, _ in scoring.items():
+        for metric_alias, metric_sklearn_name in scoring.items():
             # Scikit-Learn renvoie 'test_<metric_name>' et 'train_<metric_name>'
             # Les clés de cv_results dépendent des valeurs de scoring, pas des clés
             # Astuce: on utilise l'index des clés scoring pour retrouver les résultats
             
             # Note: cross_validate utilise les noms passés en valeurs dans scoring
             # Si scoring={'AUC': 'roc_auc'}, cross_validate renvoie 'test_roc_auc'
-            metric_sklearn_name = scoring[metric_alias]
+            train_score = np.mean(cv_results[f'train_{metric_sklearn_name}'])
+            test_score = np.mean(cv_results[f'test_{metric_sklearn_name}'])
             
-            row[f'Train {metric_alias}'] = np.mean(cv_results[f'train_{metric_sklearn_name}'])
-            row[f'Test {metric_alias}'] = np.mean(cv_results[f'test_{metric_sklearn_name}'])
-            row[f'Time'] = np.mean(cv_results['fit_time'])
+            row[f'Train {metric_alias}'] = train_score
+            row[f'Test {metric_alias}'] = test_score
             
+        row['Time'] = np.mean(cv_results['fit_time'])
         results_list.append(row)
         
+    # Tri par la première métrique de test
+    first_metric = list(scoring.keys())[0]
     return (
         pd.DataFrame(results_list)
-        .sort_values(by=f'Test {list(scoring.keys())[0]}', ascending=False)
+        .sort_values(by=f'Test {first_metric}', ascending=False)
     )
 
 
@@ -112,41 +102,35 @@ def modeling_cv(
 def predict_models_cv(
     X: pd.DataFrame,
     y: pd.Series,
-    models: Dict[str, BaseEstimator],
-    preprocessor: Optional[ColumnTransformer],
-    sampler: Optional[Any] = None,
+    pipelines: Dict[str, Pipeline],
     cv: int = 5,
     threshold: float = 0.5
 ) -> pd.DataFrame:
     """
-    Génère les prédictions (Proba et Classe) via Cross-Validation (Out-of-Fold predictions).
-    Utile pour construire une Stacking (utiliser les prédictions d'un modèle
-    comme features por un autre) ou analyser les erreurs (Comprendre les résultats
-    de Faux positi ou Négatif du modèle).
+    Génère les prédictions (Proba et Classe) via cross_val_predict() qui est utile pour:
+        - Calibration: Ajustement FP/FN
+        - Stacking: utiliser les prédictions d'un modèle comme features por un autre
+        - Analyser les erreurs: Comprendre les résultats de FP/FN du modèle
+        - Seuil de validation : Tracer les AUC
+    
     Se base sur cat_modeling_cv_predict.
     """
     results_list = []
     
-    for name, model_instance in models.items():
-        pipeline = build_classification_pipeline(model_instance, preprocessor, sampler)
-        
-        # Cross-Val Predict (Probabilités)
-        # method='predict_proba' retourne une matrice (n_samples, n_classes)
+    for name, pipe in pipelines.items():
+        # method='predict_proba' retourne (n_samples, n_classes)
         y_probas = cross_val_predict(
-            pipeline, 
+            pipe, 
             X, 
             y, 
             cv=cv, 
             method='predict_proba', 
             # n_jobs=-1
         )
-        
-        # Proba de la classe 1
+        # On prend la proba de la classe positive (1)
         positive_probs = y_probas[:, 1]
         predictions = (positive_probs >= threshold).astype("int8")
         
-        # On stocke le résultat global (pas par fold, mais pour tout le dataset)
-        # Pour une analyse par ligne, on pourrait retourner un DataFrame avec Index
         res = pd.DataFrame({
             'Modele': name,
             'Indice': X.index,
