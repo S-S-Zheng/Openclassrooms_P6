@@ -2,18 +2,19 @@
 issu de Xy_tf + preproc
 """
 # import pandas as pd
-# import numpy as np
+import numpy as np
 from typing import List, Literal, Any
 
 # Scikit-Learn / Imblearn
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder,FunctionTransformer, PowerTransformer
 from sklearn.pipeline import Pipeline 
-
+from sklearn.impute import SimpleImputer
 
 # ===========================================================================
 
 def preproc_numerical_features(
+    inferance: bool = False,
     scale_method: Any = None,
     log_method: Literal['box-cox', 'yeo-johnson', None] = None
 ) -> Pipeline:
@@ -23,6 +24,7 @@ def preproc_numerical_features(
     la Classification ==> y rarement tf donc pas mentionner!
     
     Args:
+        inferance: réalise de l'inférence sur les valeurs si True. impute la médiane au NaN
         scale_method: Instance de scaler.\n
             EXMPLES:
             'StandardScaler()': Classique, normalise en supprimant la moyenne 
@@ -41,6 +43,10 @@ def preproc_numerical_features(
         Pipeline
     """
     steps = []
+    
+    # Impute médiane aux NaN
+    if inferance:
+        steps.append(('imputer', SimpleImputer(missing_values=np.nan,strategy='median')))
     
     # Transformation Log / Power
     if log_method:

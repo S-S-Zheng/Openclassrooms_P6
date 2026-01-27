@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, Union
+from typing import Dict, Any
 from sklearn.model_selection import cross_validate, cross_val_predict
 from sklearn.pipeline import Pipeline
 
@@ -8,7 +8,7 @@ def modeling_cv(
     X: pd.DataFrame,
     y: pd.Series,
     pipelines: Dict[str, Pipeline],
-    scoring: Dict[str, str]={
+    scoring: Dict[str, Any]={
         'f1': 'f1',
         'prec': 'precision',
         'recall':'recall'
@@ -79,8 +79,11 @@ def modeling_cv(
             
             # Note: cross_validate utilise les noms passés en valeurs dans scoring
             # Si scoring={'AUC': 'roc_auc'}, cross_validate renvoie 'test_roc_auc'
-            train_score = np.mean(cv_results[f'train_{metric_sklearn_name}'])
-            test_score = np.mean(cv_results[f'test_{metric_sklearn_name}'])
+            
+            # train_score = np.mean(cv_results[f'train_{metric_sklearn_name}'])
+            # test_score = np.mean(cv_results[f'test_{metric_sklearn_name}'])
+            train_score = np.mean(cv_results[f'train_{metric_alias}'])
+            test_score = np.mean(cv_results[f'test_{metric_alias}'])
             
             row[f'Train {metric_alias}'] = train_score
             row[f'Test {metric_alias}'] = test_score

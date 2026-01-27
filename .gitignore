@@ -46,6 +46,9 @@ htmlcov
 .coverage
 
 # Datas
-raw_datas/
+datas/
 notebooks/**/deprecated/
 notebooks/**/refactored/
+
+# CatBoost
+notebooks/catboost_info/

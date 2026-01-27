@@ -2,6 +2,7 @@ import pandas as pd
 from typing import Dict, Any, Union, List, Literal
 
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.base import BaseEstimator
 
 # ===========================================================================
 
@@ -61,4 +62,12 @@ def predict_proba_wrapper(
                 "Ajout de CalibratedClassifierCV."
             )
         return CalibratedClassifierCV(estimator=model, method=method, cv=cv)
+    
+    # ======== pb avec catboost
+    # On vérifie juste s'il lui manque les tags Scikit-Learn 1.6
+    if not hasattr(model, "__sklearn_tags__"):
+        # On lui "injecte" dynamiquement la méthode par défaut de BaseEstimator
+        
+        model.__class__.__sklearn_tags__ = BaseEstimator.__sklearn_tags__ #type:ignore
+    
     return model
