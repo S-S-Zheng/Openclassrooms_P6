@@ -14,7 +14,8 @@ def modeling_cv(
         'recall':'recall'
     },
     cv: int = 5,
-    verbose: bool = True
+    verbose: bool = True,
+    n_jobs: int|None = None
 ) -> pd.DataFrame:
     """
     Exécute la validation croisée sur un dictionnaire de Pipelines déjà configurées.
@@ -46,6 +47,11 @@ def modeling_cv(
             'recall':'recall',
             'RC':'roc_auc'
         cv: Nombre de folds.
+        n_jobs: Number of jobs to run in parallel. 
+            Training the estimator and computing the score are parallelized 
+            over the cross-validation splits. 
+            None means 1 unless in a joblib.parallel_backend context. 
+            -1 means using all processors.
         
     Returns:
         DataFrame comparatif des performances.
@@ -67,7 +73,7 @@ def modeling_cv(
             cv=cv, 
             scoring=scoring, 
             return_train_score=True,
-            # n_jobs=-1
+            n_jobs=n_jobs
         )
         
         # Agrégation des résultats
@@ -107,7 +113,8 @@ def predict_models_cv(
     y: pd.Series,
     pipelines: Dict[str, Pipeline],
     cv: int = 5,
-    threshold: float = 0.5
+    threshold: float = 0.5,
+    n_jobs:int|None = None
 ) -> pd.DataFrame:
     """
     Génère les prédictions (Proba et Classe) via cross_val_predict() qui est utile pour:
@@ -128,7 +135,7 @@ def predict_models_cv(
             y, 
             cv=cv, 
             method='predict_proba', 
-            # n_jobs=-1
+            n_jobs=n_jobs
         )
         # On prend la proba de la classe positive (1)
         positive_probs = y_probas[:, 1]

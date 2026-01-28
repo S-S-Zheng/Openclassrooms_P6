@@ -24,7 +24,15 @@ def optimize_threshold(
         beta: Poids (beta > 1 privilégie le rappel, beta < 1 la précision).
         
     Returns:
-        Dictionnaire contenant les métriques au seuil optimal.
+        Dictionnaire contenant les métriques au seuil optimal.\n
+            {
+                "method": f"{method}_opt" if method != "fbeta" else f"f{beta}",\n
+                "best_f_score": float(np.max(f_scores)),\n
+                "precision": precisions[mask][idx],\n
+                "recall": recalls[mask][idx],\n
+                "optimal_threshold": thresholds[mask][idx]\n
+            }
+    
     """
 
     # Définition du masque de recherche selon la méthode
