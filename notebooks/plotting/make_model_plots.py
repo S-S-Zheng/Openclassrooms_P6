@@ -47,31 +47,32 @@ def plot_hyperparam_effect(
         and 'split' not in col
     ] # On exclut les splits individuels
 
+    # Preparation figure et axes
     n_rows, n_cols = len(metrics), len(params)
     fig, axes = setup_subplots(n_rows*n_cols,n_cols)
 
-    for i, metric in enumerate(metrics):
-        for j, param in enumerate(params):
-            ax = axes[i, j]
-            param_name = param.replace(param_prefix, '')
-            
-            # Gestion spécifique pour l'affichage (MSE négative en Sklearn)
-            y_values = cv_results[metric]
-            if model_type == "regression" and (y_values < 0).any():
-                y_values = -y_values
-                metric_label = f"Abs({metric})"
-            else:
-                metric_label = metric
+    # Ajout de la liste de combinaison métrique/paramètre
+    tasks = [(metric, param) for metric in metrics for param in params]
+    for ax, (metric, param) in zip(axes,tasks):
+        param_name = param.replace(param_prefix, '')
+        
+        # Gestion spécifique pour l'affichage (MSE négative en Sklearn)
+        y_values = cv_results[metric]
+        if model_type == "regression" and (y_values < 0).any():
+            y_values = -y_values
+            metric_label = f"Abs({metric})"
+        else:
+            metric_label = metric
 
-            # Tracé avec intervalle de confiance
-            sns.lineplot(
-                data=cv_results, x=param, y=y_values,
-                marker='o', errorbar='sd', ax=ax
-            )
-            
-            ax.set_title(f"{metric_label} vs {param_name}")
-            ax.set_xlabel(param_name)
-            ax.grid(True, alpha=0.3)
+        # Tracé avec intervalle de confiance
+        sns.lineplot(
+            data=cv_results, x=param, y=y_values,
+            marker='o', errorbar='sd', ax=ax
+        )
+        
+        ax.set_title(f"{metric_label} vs {param_name}")
+        ax.set_xlabel(param_name)
+        ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
     if save_path:
@@ -251,12 +252,11 @@ def pr_curve(
     Calcul precision, recall et threshold ainsi que l'auc.
     
     Args:
-        y_true: Étiquettes réelles.
-        y_proba: Probabilités de la classe positive (1D array).
+        y_true: target réelles.
+        y_proba: Probabilités de classe positive.
     
     """
     # thresholds renvoyé par sklearn a une longueur n_thresholds
-    # (un de moins que prec/rec)
     prec, rec, thresh = precision_recall_curve(y_true, y_proba)
     
     # On aligne les vecteurs pour prec et rec 

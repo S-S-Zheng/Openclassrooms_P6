@@ -49,6 +49,13 @@ htmlcov
 datas/
 notebooks/**/deprecated/
 notebooks/**/refactored/
+*.json
+*.pkl
+*.yaml
 
 # CatBoost
 notebooks/catboost_info/
+
+# MLflow
+mlruns/
+mlflow.db

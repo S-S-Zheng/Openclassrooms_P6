@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, Union, Optional, Literal
+from typing import Dict, Union, Optional, Literal,Tuple
 
 from notebooks.utils.metrics_classification import fbeta
+from sklearn.metrics import confusion_matrix
 
 def optimize_threshold(
     precisions:np.ndarray,
@@ -69,3 +70,37 @@ def optimize_threshold(
         "recall": recalls[mask][idx],
         "optimal_threshold": thresholds[mask][idx]
     }
+
+
+# =============================================================
+
+
+def cost_function(
+    y_true:Union[pd.Series, np.ndarray],
+    y_pred:np.ndarray, 
+    # threshold:float, 
+    cost_fn:int=1, 
+    cost_fp:int=1
+)->Tuple[int,int,int,int,int]:
+    """Calcule le coût métier total pour un seuil donné.
+
+    Args:
+        y_true (Union[pd.Series, np.ndarray]): Target réelle/test
+        y_pred (np.ndarray): Target des prédiction binaires
+        threshold (float): le seuil de validation
+        cost_fn (int, optional): le cout sur les faux négatifs 
+            (NON solvable accepté). Defaults to 1.
+        cost_fp (int, optional): le cout sur les faux positifs 
+            (solvable refusé). Defaults to 1.
+
+    Returns:
+        tuple: le cout, tn,fp,fn,tp
+    """
+    # # Définition des classes suivant le seuil
+    # y_pred = (y_probas >= threshold).astype(int)
+    
+    # Matrice de confusion
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    
+    total_cost:int = (fn * cost_fn) + (fp * cost_fp)
+    return total_cost,tn,fp,fn,tp
